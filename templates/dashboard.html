@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block title %}HR Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+
+    <!-- Welcome & Quick Action Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Recruitment Command Center</h3>
+            <p class="text-muted mb-0">Overview of active requisitions, AI candidate screening, and interview pipelines.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('resumes.analyzer_page') }}" class="btn btn-primary shadow-sm">
+                <i class="bi bi-cloud-arrow-up me-1"></i> Upload & Match Resume
+            </a>
+            <a href="{{ url_for('jobs.create_job') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-plus-circle me-1"></i> Post Job
+            </a>
+        </div>
+    </div>
+
+    <!-- 6 Summary Metric Cards -->
+    <div class="row g-3 mb-4">
+        <!-- Card 1: Total Jobs -->
+        <div class="col-6 col-lg-2">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted small fw-semibold">Total Jobs</span>
+                    <div class="stat-icon-wrapper bg-primary-subtle text-primary">
+                        <i class="bi bi-briefcase"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-dark">{{ stats.total_jobs }}</h3>
+                <small class="text-success"><i class="bi bi-arrow-up-short"></i> All Openings</small>
+            </div>
+        </div>
+
+        <!-- Card 2: Active Jobs -->
+        <div class="col-6 col-lg-2">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted small fw-semibold">Active Jobs</span>
+                    <div class="stat-icon-wrapper bg-success-subtle text-success">
+                        <i class="bi bi-check2-circle"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-dark">{{ stats.active_jobs }}</h3>
+                <small class="text-muted">Accepting Resumes</small>
+            </div>
+        </div>
+
+        <!-- Card 3: Total Candidates -->
+        <div class="col-6 col-lg-2">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted small fw-semibold">Candidates</span>
+                    <div class="stat-icon-wrapper bg-info-subtle text-info">
+                        <i class="bi bi-people"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-dark">{{ stats.total_candidates }}</h3>
+                <small class="text-muted">In Talent Pool</small>
+            </div>
+        </div>
+
+        <!-- Card 4: Resumes Analyzed -->
+        <div class="col-6 col-lg-2">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted small fw-semibold">Resumes Parsed</span>
+                    <div class="stat-icon-wrapper bg-warning-subtle text-warning">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-dark">{{ stats.resumes_analyzed }}</h3>
+                <small class="text-success"><i class="bi bi-lightning-charge"></i> AI Processed</small>
+            </div>
+        </div>
+
+        <!-- Card 5: Shortlisted Candidates -->
+        <div class="col-6 col-lg-2">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted small fw-semibold">Shortlisted</span>
+                    <div class="stat-icon-wrapper bg-primary-subtle text-primary">
+                        <i class="bi bi-bookmark-star"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-dark">{{ stats.shortlisted_candidates }}</h3>
+                <small class="text-primary fw-medium">High Match Fit</small>
+            </div>
+        </div>
+
+        <!-- Card 6: Interviews Completed -->
+        <div class="col-6 col-lg-2">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted small fw-semibold">Interviews Done</span>
+                    <div class="stat-icon-wrapper bg-secondary-subtle text-secondary">
+                        <i class="bi bi-calendar2-check"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-dark">{{ stats.interviews_completed }}</h3>
+                <small class="text-muted">Evaluated</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3 Dynamic Analytics Charts -->
+    <div class="row g-3 mb-4">
+        <!-- Chart 1: Applicants per Job -->
+        <div class="col-lg-5">
+            <div class="card-custom h-100 p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-dark mb-0">Applicants per Job</h6>
+                    <span class="badge bg-light text-secondary border">Volume</span>
+                </div>
+                <div style="height: 240px; position: relative;">
+                    <canvas id="chartApplicantsPerJob"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 2: Match Score Distribution -->
+        <div class="col-lg-4">
+            <div class="card-custom h-100 p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-dark mb-0">Candidate Match Scores</h6>
+                    <span class="badge bg-light text-secondary border">AI Fit</span>
+                </div>
+                <div style="height: 240px; position: relative;">
+                    <canvas id="chartScoreDistribution"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 3: Recruitment Status -->
+        <div class="col-lg-3">
+            <div class="card-custom h-100 p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-dark mb-0">Recruitment Status</h6>
+                    <span class="badge bg-light text-secondary border">Pipeline</span>
+                </div>
+                <div style="height: 240px; position: relative;">
+                    <canvas id="chartRecruitmentStatus"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Matching Candidates Leaderboard & Recent Jobs -->
+    <div class="row g-3 mb-4">
+        <!-- Top Matching Candidates -->
+        <div class="col-lg-7">
+            <div class="card-custom h-100">
+                <div class="card-custom-header">
+                    <h6 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-award text-warning me-2"></i>Top Matching Candidates
+                    </h6>
+                    <a href="{{ url_for('matching.ranking_page') }}" class="small text-primary text-decoration-none fw-semibold">
+                        View Ranking <i class="bi bi-chevron-right"></i>
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small text-secondary text-uppercase">
+                            <tr>
+                                <th>Candidate</th>
+                                <th>Target Position</th>
+                                <th style="width: 180px;">AI Match Score</th>
+                                <th>Recommendation</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for match in top_matches %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('candidates.candidate_profile', candidate_id=match.candidate_id) }}" class="fw-semibold text-dark text-decoration-none">
+                                        {{ match.candidate_name }}
+                                    </a>
+                                    <small class="d-block text-muted">{{ match.candidate_email }}</small>
+                                </td>
+                                <td>
+                                    <span class="fw-medium text-secondary">{{ match.job_title }}</span>
+                                    <small class="d-block text-muted">{{ match.department }}</small>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-grow-1" style="height: 8px;">
+                                            <div class="progress-bar {% if match.overall_score >= 85 %}bg-success{% elif match.overall_score >= 70 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                                 style="width: {{ match.overall_score }}%;"></div>
+                                        </div>
+                                        <span class="fw-bold small">{{ match.overall_score }}%</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="{{ match.rec_meta.badge }}">{{ match.recommendation }}</span>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('matching.matching_page', job_id=match.job_id, candidate_id=match.candidate_id) }}" class="btn btn-sm btn-outline-primary py-1 px-2" title="Inspect Match">
+                                        <i class="bi bi-sliders"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">No candidate matches computed yet. Upload a resume to see rankings!</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Jobs -->
+        <div class="col-lg-5">
+            <div class="card-custom h-100">
+                <div class="card-custom-header">
+                    <h6 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-briefcase text-primary me-2"></i>Recent Jobs
+                    </h6>
+                    <a href="{{ url_for('jobs.index') }}" class="small text-primary text-decoration-none fw-semibold">
+                        View All <i class="bi bi-chevron-right"></i>
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small text-secondary text-uppercase">
+                            <tr>
+                                <th>Role</th>
+                                <th>Department</th>
+                                <th>Applicants</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for job in recent_jobs %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('jobs.view_job', job_id=job.id) }}" class="fw-semibold text-dark text-decoration-none">
+                                        {{ job.title }}
+                                    </a>
+                                    <small class="d-block text-muted">{{ job.location }}</small>
+                                </td>
+                                <td class="text-secondary small">{{ job.department }}</td>
+                                <td>
+                                    <span class="badge bg-primary-subtle text-primary rounded-pill px-2">
+                                        {{ job.applicant_count }} candidates
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge {% if job.status == 'Active' %}bg-success-subtle text-success border border-success{% elif job.status == 'Closed' %}bg-secondary{% else %}bg-warning-subtle text-warning{% endif %}">
+                                        {{ job.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">No jobs created yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Candidates & Scheduled Interviews -->
+    <div class="row g-3">
+        <!-- Recent Candidates -->
+        <div class="col-lg-6">
+            <div class="card-custom h-100">
+                <div class="card-custom-header">
+                    <h6 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-people text-info me-2"></i>Recently Added Candidates
+                    </h6>
+                    <a href="{{ url_for('candidates.index') }}" class="small text-primary text-decoration-none fw-semibold">
+                        Directory <i class="bi bi-chevron-right"></i>
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small text-secondary text-uppercase">
+                            <tr>
+                                <th>Candidate</th>
+                                <th>Title / Experience</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cand in recent_candidates %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('candidates.candidate_profile', candidate_id=cand.id) }}" class="fw-semibold text-dark text-decoration-none">
+                                        {{ cand.name }}
+                                    </a>
+                                    <small class="d-block text-muted">{{ cand.location or 'Remote' }}</small>
+                                </td>
+                                <td>
+                                    <span class="small fw-medium text-dark">{{ cand.current_title or 'Software Engineer' }}</span>
+                                    <small class="d-block text-muted">{{ cand.years_experience }} yrs exp</small>
+                                </td>
+                                <td>
+                                    <span class="badge {{ get_status_badge(cand.recruitment_status) }}">{{ cand.recruitment_status }}</span>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center py-4 text-muted">No candidates registered.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Interviews -->
+        <div class="col-lg-6">
+            <div class="card-custom h-100">
+                <div class="card-custom-header">
+                    <h6 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-calendar-event text-danger me-2"></i>Recent Interviews
+                    </h6>
+                    <a href="{{ url_for('interviews.interviews_list') }}" class="small text-primary text-decoration-none fw-semibold">
+                        Schedule <i class="bi bi-chevron-right"></i>
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small text-secondary text-uppercase">
+                            <tr>
+                                <th>Candidate</th>
+                                <th>Position</th>
+                                <th>Date & Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for interview in recent_interviews %}
+                            <tr>
+                                <td>
+                                    <span class="fw-semibold text-dark">{{ interview.candidate_name }}</span>
+                                    <small class="d-block text-muted">{{ interview.interview_type }} Round</small>
+                                </td>
+                                <td>
+                                    <span class="small text-secondary">{{ interview.job_title }}</span>
+                                </td>
+                                <td>
+                                    <span class="small fw-medium">{{ interview.scheduled_date }}</span>
+                                    <small class="d-block text-muted">{{ interview.scheduled_time }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge {% if interview.status == 'Completed' %}bg-success{% elif interview.status == 'Scheduled' %}bg-primary{% else %}bg-secondary{% endif %}">
+                                        {{ interview.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">No interviews scheduled yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const chartData = {{ stats.charts | tojson }};
+    initDashboardCharts(chartData);
+});
+</script>
+{% endblock %}
+

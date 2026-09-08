@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}AI Interview Question Generator{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">AI Interview Question Generator</h3>
+            <p class="text-muted mb-0">Generate tailored, context-aware interview questions based on candidate projects, technical depth, and skill gaps.</p>
+        </div>
+        {% if questions %}
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('interviews.export_questions', job_id=selected_job_id, candidate_id=selected_cand_id) }}" class="btn btn-outline-secondary shadow-sm">
+                <i class="bi bi-download me-1"></i> Export TXT
+            </a>
+            <button onclick="window.print()" class="btn btn-light shadow-sm">
+                <i class="bi bi-printer me-1"></i> Print
+            </button>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Generator Control Panel -->
+    <div class="card-custom p-4 mb-4">
+        <form method="GET" action="{{ url_for('interviews.questions_page') }}" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold text-secondary">Target Requisition</label>
+                <select name="job_id" class="form-select" required>
+                    {% for j in jobs %}
+                    <option value="{{ j.id }}" {% if selected_job_id == j.id %}selected{% endif %}>
+                        {{ j.title }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold text-secondary">Candidate</label>
+                <select name="candidate_id" class="form-select" required>
+                    {% for c in candidates %}
+                    <option value="{{ c.id }}" {% if selected_cand_id == c.id %}selected{% endif %}>
+                        {{ c.name }} ({{ c.current_title or 'Candidate' }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold text-secondary">Number of Questions</label>
+                <select name="count" class="form-select">
+                    <option value="5" {% if selected_count == 5 %}selected{% endif %}>5 Questions</option>
+                    <option value="10" {% if selected_count == 10 %}selected{% endif %}>10 Questions</option>
+                    <option value="15" {% if selected_count == 15 %}selected{% endif %}>15 Questions</option>
+                    <option value="20" {% if selected_count == 20 %}selected{% endif %}>20 Questions</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100 py-2">
+                    <i class="bi bi-stars text-warning me-1"></i> Generate
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% if candidate and job %}
+    <!-- Context Indicator -->
+    <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3 border mb-4">
+        <div>
+            <span class="small text-secondary">Interview Kit prepared for:</span>
+            <strong class="text-dark ms-1">{{ candidate.name }}</strong>
+            <span class="text-muted mx-2">&bull;</span>
+            <span class="small text-secondary">Position:</span>
+            <strong class="text-primary ms-1">{{ job.title }}</strong>
+        </div>
+        <form method="GET" action="{{ url_for('interviews.questions_page') }}">
+            <input type="hidden" name="job_id" value="{{ selected_job_id }}">
+            <input type="hidden" name="candidate_id" value="{{ selected_cand_id }}">
+            <input type="hidden" name="count" value="{{ selected_count }}">
+            <input type="hidden" name="regenerate" value="true">
+            <button type="submit" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-clockwise me-1"></i> Regenerate Set
+            </button>
+        </form>
+    </div>
+
+    <!-- Category Filter Tabs -->
+    <ul class="nav nav-pills mb-4 gap-1" id="categoryFilter">
+        <li class="nav-item">
+            <button class="nav-link active py-1 px-3 filter-btn" data-cat="all">All ({{ questions|length }})</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link py-1 px-3 filter-btn" data-cat="Technical">Technical</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link py-1 px-3 filter-btn" data-cat="Project-Based">Project-Based</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link py-1 px-3 filter-btn" data-cat="Skill Gap">Skill Gap</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link py-1 px-3 filter-btn" data-cat="Behavioral">Behavioral</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link py-1 px-3 filter-btn" data-cat="Situational">Situational</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link py-1 px-3 filter-btn" data-cat="Role-Specific">Role-Specific</button>
+        </li>
+    </ul>
+
+    <!-- Question Cards List -->
+    <div class="row g-3 mb-4" id="questionsList">
+        {% for q in questions %}
+        <div class="col-12 question-item" data-category="{{ q.category }}">
+            <div class="card-custom p-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge {% if q.category == 'Skill Gap' %}bg-danger-subtle text-danger border border-danger-subtle{% elif q.category == 'Technical' %}bg-primary-subtle text-primary border border-primary-subtle{% elif q.category == 'Project-Based' %}bg-warning-subtle text-warning border border-warning-subtle{% else %}bg-secondary-subtle text-secondary border{% endif %} px-2 py-1">
+                            {{ q.category }}
+                        </span>
+                        <span class="badge {% if q.difficulty == 'Hard' %}bg-danger{% elif q.difficulty == 'Medium' %}bg-warning text-dark{% else %}bg-success{% endif %} rounded-pill px-2" style="font-size: 0.72rem;">
+                            {{ q.difficulty }}
+                        </span>
+                    </div>
+                    <span class="text-muted small">Q#{{ loop.index }}</span>
+                </div>
+
+                <h5 class="fw-semibold text-dark my-2" style="line-height: 1.5;">{{ q.question_text }}</h5>
+
+                {% if q.expected_skills %}
+                <div class="p-2 bg-light rounded border mt-3 small">
+                    <strong class="text-secondary"><i class="bi bi-lightbulb text-warning me-1"></i>Key Concepts / Expected Answers:</strong>
+                    <span class="text-dark ms-1">{{ q.expected_skills }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5 text-muted">
+            <p>No questions generated yet. Click 'Generate' above.</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const items = document.querySelectorAll('.question-item');
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const cat = btn.getAttribute('data-cat');
+            items.forEach(item => {
+                if (cat === 'all' || item.getAttribute('data-category') === cat) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}
+

@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}Candidate Matching & Skill Gap Analysis{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-0">
+
+
+<!-- Top Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">Candidate Matching & Skill Gap Analysis</h3>
+        <p class="text-muted mb-0">Transparent 5-factor weighted comparison between candidate resume qualifications and job requirements.</p>
+    </div>
+    {% if candidate and job %}
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('interviews.questions_page', job_id=job.id, candidate_id=candidate.id) }}" class="btn btn-outline-primary shadow-sm">
+            <i class="bi bi-chat-right-quote me-1"></i> Generate Questions
+        </a>
+        <a href="{{ url_for('matching.ranking_page', job_id=job.id) }}" class="btn btn-warning shadow-sm fw-semibold">
+            <i class="bi bi-trophy me-1"></i> View Job Ranking
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Job & Candidate Selector Card -->
+<div class="card-custom p-3 mb-4">
+    <form method="GET" action="{{ url_for('matching.matching_page') }}" class="row g-3 align-items-center">
+        <div class="col-md-5">
+            <label class="form-label small fw-semibold text-secondary mb-1">Target Requisition / Job</label>
+            <select name="job_id" id="matchJobSelect" class="form-select" onchange="this.form.submit()">
+                {% for j in jobs %}
+                <option value="{{ j.id }}" {% if selected_job_id == j.id %}selected{% endif %}>
+                    {{ j.title }} ({{ j.department }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-5">
+            <label class="form-label small fw-semibold text-secondary mb-1">Candidate Profile</label>
+            <select name="candidate_id" id="matchCandidateSelect" class="form-select" onchange="this.form.submit()">
+                {% for c in candidates %}
+                <option value="{{ c.id }}" {% if selected_cand_id == c.id %}selected{% endif %}>
+                    {{ c.name }} - {{ c.current_title or 'Candidate' }} ({{ c.email }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100 py-2">
+                <i class="bi bi-arrow-repeat me-1"></i> Compare
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Ethical AI Decision Support Disclaimer -->
+<div class="ai-disclaimer-banner">
+    <i class="bi bi-shield-check fs-4 text-primary"></i>
+    <div>
+        <strong class="d-block text-primary fw-bold">Ethical AI Decision Support Notice</strong>
+        <span class="text-secondary small">
+            Match scores and recommendations are calculated strictly on documented technical skills, verified experience duration, and education criteria. 
+            Sensitive and protected personal attributes are never considered. This output is designed to assist human recruiters who retain ultimate hiring authority.
+        </span>
+    </div>
+</div>
+
+{% if match %}
+<!-- Main Comparison Grid -->
+<div class="row g-4 mb-4">
+
+    <!-- Left: Overall Match & 5-Factor Weighted Breakdown -->
+    <div class="col-lg-5">
+        <div class="card-custom p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-dark mb-0">Match Score Breakdown</h5>
+                <span class="{{ match.rec_meta.badge }}">{{ match.recommendation }}</span>
+            </div>
+
+            <!-- Radial / Conic Score Dial -->
+            <div class="my-4 text-center">
+                <div class="radial-score-box" style="--score-deg: {{ (match.overall_score|float) * 3.6 }};">
+                    <div class="radial-score-inner">
+                        <h2 class="fw-bold mb-0 text-dark" style="font-size: 2.1rem;">{{ match.overall_score }}%</h2>
+                        <small class="text-uppercase text-secondary fw-semibold" style="font-size: 0.68rem; letter-spacing: 0.05rem;">Overall Fit</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5-Factor Progress Bars -->
+            <div class="d-flex flex-column gap-3 mt-4">
+                <!-- Factor 1: Skills Match (50%) -->
+                <div>
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="fw-semibold text-dark">Technical Skills Match (50% Weight)</span>
+                        <strong class="text-primary">{{ match.skills_score }}%</strong>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-primary" style="width: {{ match.skills_score }}%;"></div>
+                    </div>
+                </div>
+
+                <!-- Factor 2: Experience Match (20%) -->
+                <div>
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="fw-semibold text-dark">Experience Match (20% Weight)</span>
+                        <strong class="text-success">{{ match.experience_score }}%</strong>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-success" style="width: {{ match.experience_score }}%;"></div>
+                    </div>
+                </div>
+
+                <!-- Factor 3: Education Match (10%) -->
+                <div>
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="fw-semibold text-dark">Education Match (10% Weight)</span>
+                        <strong class="text-info">{{ match.education_score }}%</strong>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-info" style="width: {{ match.education_score }}%;"></div>
+                    </div>
+                </div>
+
+                <!-- Factor 4: Project Relevance (10%) -->
+                <div>
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="fw-semibold text-dark">Project & Domain Relevance (10% Weight)</span>
+                        <strong class="text-warning">{{ match.project_score }}%</strong>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-warning" style="width: {{ match.project_score }}%;"></div>
+                    </div>
+                </div>
+
+                <!-- Factor 5: Preferred Skills (10%) -->
+                <div>
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="fw-semibold text-dark">Preferred / Bonus Skills (10% Weight)</span>
+                        <strong class="text-secondary">{{ match.preferred_skills_score }}%</strong>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-secondary" style="width: {{ match.preferred_skills_score }}%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recruiter Quick Status Action -->
+            <div class="mt-4 pt-3 border-top">
+                <form method="POST" action="{{ url_for('candidates.update_status', candidate_id=candidate.id) }}" class="d-flex align-items-center justify-content-between">
+                    <small class="text-secondary fw-semibold">Update Candidate Status:</small>
+                    <select name="status" class="form-select form-select-sm" style="width: 170px;" onchange="this.form.submit()">
+                        <option value="New" {% if candidate.recruitment_status == 'New' %}selected{% endif %}>New</option>
+                        <option value="Under Review" {% if candidate.recruitment_status == 'Under Review' %}selected{% endif %}>Under Review</option>
+                        <option value="Shortlisted" {% if candidate.recruitment_status == 'Shortlisted' %}selected{% endif %}>Shortlisted</option>
+                        <option value="Interview Scheduled" {% if candidate.recruitment_status == 'Interview Scheduled' %}selected{% endif %}>Interview Scheduled</option>
+                        <option value="Selected" {% if candidate.recruitment_status == 'Selected' %}selected{% endif %}>Selected</option>
+                        <option value="Rejected" {% if candidate.recruitment_status == 'Rejected' %}selected{% endif %}>Rejected</option>
+                    </select>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Skills Alignment & Qualitative AI Feedback -->
+    <div class="col-lg-7">
+        <!-- Skills Alignment Card -->
+        <div class="card-custom p-4 mb-4">
+            <h5 class="fw-bold text-dark mb-3">Skills Alignment Breakdown</h5>
+            
+            <!-- Matched Skills -->
+            <div class="mb-4">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-check-circle-fill text-success"></i>
+                    <span class="fw-bold small text-uppercase text-success">Matched Skills ({{ match.matched_skills|length }})</span>
+                </div>
+                <div>
+                    {% for s in match.matched_skills %}
+                    <span class="skill-tag-matched"><i class="bi bi-check2"></i>{{ s }}</span>
+                    {% else %}
+                    <span class="text-muted small">No direct required skills matched.</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Missing Skills -->
+            <div class="mb-4">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-x-circle-fill text-danger"></i>
+                    <span class="fw-bold small text-uppercase text-danger">Missing Required Skills ({{ match.missing_skills|length }})</span>
+                </div>
+                <div>
+                    {% for s in match.missing_skills %}
+                    <span class="skill-tag-missing"><i class="bi bi-x"></i>{{ s }}</span>
+                    {% else %}
+                    <span class="text-success small fw-medium"><i class="bi bi-check-all me-1"></i>Zero missing required skills! Full coverage.</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Partial Matches -->
+            {% if match.partial_skills %}
+            <div class="mb-2">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+                    <span class="fw-bold small text-uppercase text-warning">Adjacent / Partial Matches ({{ match.partial_skills|length }})</span>
+                </div>
+                <div>
+                    {% for s in match.partial_skills %}
+                    <span class="skill-tag-partial"><i class="bi bi-exclamation"></i>{{ s }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Strengths, Weaknesses & AI Narrative -->
+        <div class="card-custom p-4">
+            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-cpu text-primary me-2"></i>AI Assessment & Skill Gap Diagnosis</h5>
+
+            <div class="mb-3">
+                <strong class="text-dark small d-block mb-1"><i class="bi bi-shield-plus text-success me-1"></i>Demonstrated Strengths:</strong>
+                <p class="text-secondary small mb-0">{{ match.strengths }}</p>
+            </div>
+
+            <div class="mb-3">
+                <strong class="text-dark small d-block mb-1"><i class="bi bi-slash-circle text-danger me-1"></i>Identified Skill Gaps / Weaknesses:</strong>
+                <p class="text-secondary small mb-0">{{ match.weaknesses }}</p>
+            </div>
+
+            <div class="p-3 bg-light rounded-3 border">
+                <strong class="text-primary small d-block mb-1"><i class="bi bi-chat-left-text-fill me-1"></i>AI Recruiter Summary Explanation:</strong>
+                <p class="text-secondary small mb-0" style="line-height: 1.6;">{{ match.ai_explanation }}</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% else %}
+<div class="card-custom p-5 text-center text-muted">
+    <i class="bi bi-sliders2 fs-1 text-secondary d-block mb-2"></i>
+    <h5>Select a Job and Candidate above to compute match analysis.</h5>
+</div>
+{% endif %}
+
+</div>
+{% endblock %}

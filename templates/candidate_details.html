@@ -1,0 +1,379 @@
+{% extends "base.html" %}
+
+{% block title %}{{ candidate.name }} - Profile{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+
+    <!-- Header & Status Bar -->
+    <div class="card-custom p-4 mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-primary text-white fw-bold d-flex align-items-center justify-content-center shadow-sm" style="width: 64px; height: 64px; font-size: 1.5rem;">
+                    {{ candidate.name[0] }}
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <h4 class="fw-bold text-dark mb-0">{{ candidate.name }}</h4>
+                        <span class="badge {{ get_status_badge(candidate.recruitment_status) }}">{{ candidate.recruitment_status }}</span>
+                    </div>
+                    <p class="text-muted mb-0">
+                        <span class="fw-semibold text-secondary">{{ candidate.current_title or 'Software Engineer' }}</span> &bull;
+                        <i class="bi bi-clock-history ms-2 me-1"></i>{{ candidate.years_experience }} Years Exp &bull;
+                        <i class="bi bi-geo-alt ms-2 me-1"></i>{{ candidate.location or 'Remote' }}
+                    </p>
+                    <div class="small text-muted mt-1">
+                        <i class="bi bi-envelope me-1"></i>{{ candidate.email }} &bull;
+                        <i class="bi bi-telephone ms-2 me-1"></i>{{ candidate.phone or 'Not provided' }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex flex-column align-items-md-end gap-2">
+                <!-- Status Update Form -->
+                <form method="POST" action="{{ url_for('candidates.update_status', candidate_id=candidate.id) }}" class="d-flex align-items-center gap-2">
+                    <label class="small text-secondary fw-semibold mb-0">Status:</label>
+                    <select name="status" class="form-select form-select-sm" style="width: 170px;" onchange="this.form.submit()">
+                        <option value="New" {% if candidate.recruitment_status == 'New' %}selected{% endif %}>New</option>
+                        <option value="Under Review" {% if candidate.recruitment_status == 'Under Review' %}selected{% endif %}>Under Review</option>
+                        <option value="Shortlisted" {% if candidate.recruitment_status == 'Shortlisted' %}selected{% endif %}>Shortlisted</option>
+                        <option value="Interview Scheduled" {% if candidate.recruitment_status == 'Interview Scheduled' %}selected{% endif %}>Interview Scheduled</option>
+                        <option value="Selected" {% if candidate.recruitment_status == 'Selected' %}selected{% endif %}>Selected</option>
+                        <option value="Rejected" {% if candidate.recruitment_status == 'Rejected' %}selected{% endif %}>Rejected</option>
+                    </select>
+                </form>
+
+                <div class="d-flex gap-2 mt-1">
+                    <a href="{{ url_for('interviews.questions_page', candidate_id=candidate.id) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-chat-right-quote me-1"></i> Generate Questions
+                    </a>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#quickMatchModal">
+                        <i class="bi bi-sliders2-vertical me-1"></i> Match with Job
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Summary Banner -->
+    {% if candidate.ai_summary %}
+    <div class="card-custom p-4 mb-4" style="background: linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%); border-color: #c7d2fe;">
+        <div class="d-flex align-items-start gap-3">
+            <div class="bg-primary text-white p-2 rounded-3 shadow-sm">
+                <i class="bi bi-stars fs-4"></i>
+            </div>
+            <div>
+                <h6 class="fw-bold text-primary mb-1">AI Executive Candidate Summary</h6>
+                <p class="text-secondary mb-0" style="line-height: 1.6;">{{ candidate.ai_summary }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Tabs Navigation -->
+    <ul class="nav nav-pills mb-4 gap-2" id="profileTabs" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active px-4 py-2" id="overview-tab" data-bs-toggle="pill" data-bs-target="#overview" type="button">
+                <i class="bi bi-person-lines-fill me-1"></i> Overview & Skills
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link px-4 py-2" id="matches-tab" data-bs-toggle="pill" data-bs-target="#matches" type="button">
+                <i class="bi bi-award me-1"></i> Job Matches ({{ matches|length }})
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link px-4 py-2" id="interviews-tab" data-bs-toggle="pill" data-bs-target="#interviews" type="button">
+                <i class="bi bi-calendar2-check me-1"></i> Interviews & Evaluations ({{ interviews|length }})
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content Panels -->
+    <div class="tab-content" id="profileTabsContent">
+
+        <!-- TAB 1: OVERVIEW & SKILLS -->
+        <div class="tab-pane fade show active" id="overview">
+            <div class="row g-4">
+                <!-- Left: Experience & Projects -->
+                <div class="col-lg-8">
+                    <!-- Work Experience -->
+                    <div class="card-custom p-4 mb-4">
+                        <h6 class="fw-bold text-dark mb-4">
+                            <i class="bi bi-briefcase-fill text-primary me-2"></i>Work Experience
+                        </h6>
+                        {% for exp in experience %}
+                        <div class="position-relative ps-4 pb-4 border-start border-2 border-primary-subtle">
+                            <div class="position-absolute bg-primary rounded-circle" style="width: 10px; height: 10px; left: -6px; top: 5px;"></div>
+                            <h6 class="fw-bold text-dark mb-0">{{ exp.title }}</h6>
+                            <small class="text-primary fw-semibold">{{ exp.company }}</small>
+                            <small class="text-muted d-block mb-2">{{ exp.start_date }} - {{ exp.end_date or 'Present' }}</small>
+                            <p class="text-secondary small mb-0">{{ exp.description }}</p>
+                        </div>
+                        {% else %}
+                        <p class="text-muted small">No work experience history recorded.</p>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Projects -->
+                    <div class="card-custom p-4 mb-4">
+                        <h6 class="fw-bold text-dark mb-4">
+                            <i class="bi bi-folder-fill text-warning me-2"></i>Projects & Portfolio
+                        </h6>
+                        <div class="row g-3">
+                            {% for proj in projects %}
+                            <div class="col-md-6">
+                                <div class="border rounded-3 p-3 bg-light h-100">
+                                    <h6 class="fw-bold text-dark mb-1">{{ proj.project_title }}</h6>
+                                    <p class="text-secondary small mb-2">{{ proj.description }}</p>
+                                    {% if proj.technologies_used %}
+                                    <small class="text-muted d-block"><strong>Tech:</strong> {{ proj.technologies_used }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="col-12 text-muted small">No specific projects recorded.</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Skills, Education, Certifications -->
+                <div class="col-lg-4">
+                    <!-- Skills -->
+                    <div class="card-custom p-4 mb-4">
+                        <h6 class="fw-bold text-dark mb-3">
+                            <i class="bi bi-cpu-fill text-primary me-2"></i>Verified Skills ({{ skills|length }})
+                        </h6>
+                        <div class="d-flex flex-wrap gap-1">
+                            {% for s in skills %}
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle py-2 px-2 fw-medium">
+                                {{ s.skill_name }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted small">No skills parsed yet.</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Education -->
+                    <div class="card-custom p-4 mb-4">
+                        <h6 class="fw-bold text-dark mb-3">
+                            <i class="bi bi-mortarboard-fill text-success me-2"></i>Education
+                        </h6>
+                        {% for edu in education %}
+                        <div class="mb-3 pb-3 border-bottom last-border-0">
+                            <h6 class="fw-bold text-dark mb-0 small">{{ edu.degree }}</h6>
+                            <p class="text-secondary small mb-0">{{ edu.institution }}</p>
+                            <small class="text-muted">{{ edu.graduation_year }} &bull; {{ edu.grade or 'Standard' }}</small>
+                        </div>
+                        {% else %}
+                        <span class="text-muted small">No education entries.</span>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Certifications -->
+                    <div class="card-custom p-4">
+                        <h6 class="fw-bold text-dark mb-3">
+                            <i class="bi bi-patch-check-fill text-info me-2"></i>Certifications
+                        </h6>
+                        {% for cert in certifications %}
+                        <div class="mb-2">
+                            <span class="small fw-semibold text-dark d-block">{{ cert.name }}</span>
+                            <small class="text-muted">{{ cert.issuing_organization }} &bull; {{ cert.issue_date }}</small>
+                        </div>
+                        {% else %}
+                        <span class="text-muted small">No certifications recorded.</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: JOB MATCHES -->
+        <div class="tab-pane fade" id="matches">
+            <div class="row g-4">
+                {% for m in matches %}
+                <div class="col-lg-6">
+                    <div class="card-custom p-4 h-100">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="fw-bold text-dark mb-1">{{ m.job_title }}</h5>
+                                <small class="text-muted">{{ m.department }} &bull; {{ m.job_location }}</small>
+                            </div>
+                            <span class="{{ m.rec_meta.badge }}">{{ m.recommendation }}</span>
+                        </div>
+
+                        <!-- Overall Score Indicator -->
+                        <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-3 mb-3 border">
+                            <div class="text-center" style="min-width: 70px;">
+                                <h2 class="fw-bold text-primary mb-0">{{ m.overall_score }}%</h2>
+                                <small class="text-muted text-uppercase" style="font-size: 0.65rem;">Overall Fit</small>
+                            </div>
+                            <div class="flex-grow-1 border-start ps-3">
+                                <div class="row g-2 small text-secondary">
+                                    <div class="col-6">Skills: <strong>{{ m.skills_score }}%</strong></div>
+                                    <div class="col-6">Experience: <strong>{{ m.experience_score }}%</strong></div>
+                                    <div class="col-6">Education: <strong>{{ m.education_score }}%</strong></div>
+                                    <div class="col-6">Projects: <strong>{{ m.project_score }}%</strong></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Matched & Missing Skills -->
+                        <div class="mb-3">
+                            <small class="fw-bold text-dark text-uppercase d-block mb-1" style="font-size: 0.72rem;">Matched Skills (✓)</small>
+                            <div>
+                                {% for ms in m.matched_skills_list %}
+                                <span class="skill-tag-matched"><i class="bi bi-check2"></i>{{ ms }}</span>
+                                {% else %}
+                                <span class="text-muted small">No direct skill matches.</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        {% if m.missing_skills_list %}
+                        <div class="mb-3">
+                            <small class="fw-bold text-danger text-uppercase d-block mb-1" style="font-size: 0.72rem;">Missing Skills (✗)</small>
+                            <div>
+                                {% for mis in m.missing_skills_list %}
+                                <span class="skill-tag-missing"><i class="bi bi-x"></i>{{ mis }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <p class="small text-secondary mb-3">{{ m.ai_explanation }}</p>
+
+                        <div class="d-flex justify-content-end gap-2 mt-auto">
+                            <a href="{{ url_for('matching.matching_page', job_id=m.job_id, candidate_id=candidate.id) }}" class="btn btn-sm btn-outline-primary">
+                                Deep Dive Match
+                            </a>
+                            <a href="{{ url_for('interviews.questions_page', job_id=m.job_id, candidate_id=candidate.id) }}" class="btn btn-sm btn-primary">
+                                Generate Questions
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="col-12 text-center py-5 text-muted">
+                    <p>No job matches calculated yet for this candidate.</p>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#quickMatchModal">
+                        Calculate Fit for Open Requisition
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- TAB 3: INTERVIEWS & EVALUATIONS -->
+        <div class="tab-pane fade" id="interviews">
+            <div class="card-custom">
+                <div class="card-custom-header">
+                    <h6 class="fw-bold text-dark mb-0">Interview Rounds & Completed Evaluations</h6>
+                    <a href="{{ url_for('interviews.interviews_list') }}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-calendar-plus me-1"></i> Schedule Interview
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small text-secondary text-uppercase">
+                            <tr>
+                                <th>Role</th>
+                                <th>Round</th>
+                                <th>Date & Time</th>
+                                <th>Status</th>
+                                <th>Eval Score</th>
+                                <th>Recommendation</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for iv in interviews %}
+                            <tr>
+                                <td class="fw-semibold text-dark">{{ iv.job_title }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ iv.interview_type }}</span></td>
+                                <td class="small">{{ iv.scheduled_date }} at {{ iv.scheduled_time }}</td>
+                                <td>
+                                    <span class="badge {% if iv.status == 'Completed' %}bg-success{% elif iv.status == 'Scheduled' %}bg-primary{% else %}bg-secondary{% endif %}">
+                                        {{ iv.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if iv.eval_score %}
+                                    <strong class="text-primary">{{ iv.eval_score }}%</strong>
+                                    {% else %}
+                                    <span class="text-muted small">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if iv.final_recommendation %}
+                                    <span class="badge bg-success-subtle text-success border border-success">{{ iv.final_recommendation }}</span>
+                                    {% else %}
+                                    <span class="text-muted small">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <a href="{{ url_for('interviews.interview_evaluation', interview_id=iv.id) }}" class="btn btn-sm btn-outline-primary py-1 px-2">
+                                        {% if iv.status == 'Completed' %}Review Eval{% else %}Evaluate{% endif %}
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">No interviews scheduled yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Quick Match Modal -->
+<div class="modal fade" id="quickMatchModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark">Match with Job Requisition</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p class="text-muted small">Select an active job to compute transparent 5-factor scoring and skill gap analysis for {{ candidate.name }}.</p>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-secondary">Target Job Opening</label>
+                    <select id="quickMatchJobId" class="form-select">
+                        {% for j in all_jobs %}
+                        <option value="{{ j.id }}">{{ j.title }} ({{ j.department }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="executeQuickMatch()">
+                    Run AI Match
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function executeQuickMatch() {
+    const jobId = document.getElementById('quickMatchJobId').value;
+    const candId = {{ candidate.id }};
+    if (jobId) {
+        window.location.href = `/matching?job_id=${jobId}&candidate_id=${candId}`;
+    }
+}
+</script>
+{% endblock %}
+

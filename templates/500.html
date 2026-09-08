@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Internal Server Error (500){% endblock %}
+
+{% block content %}
+<div class="text-center py-5">
+    <div class="rounded-circle bg-danger-subtle d-inline-flex p-4 mb-3 text-danger">
+        <i class="bi bi-exclamation-octagon" style="font-size: 3.5rem;"></i>
+    </div>
+    <h2 class="fw-bold text-dark">500 - Application Error</h2>
+    <p class="text-secondary">An unexpected server error occurred. The system safely intercepted it to protect data integrity.</p>
+    <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary mt-2">
+        <i class="bi bi-arrow-clockwise me-1"></i> Reload Dashboard
+    </a>
+</div>
+{% endblock %}
+

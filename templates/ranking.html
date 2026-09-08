@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Candidate Leaderboard Ranking{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Candidate Leaderboard Ranking</h3>
+            <p class="text-muted mb-0">Ranked candidate evaluation based on objective transparent match scoring for each requisition.</p>
+        </div>
+        {% if selected_job_id %}
+        <a href="{{ url_for('resumes.analyzer_page', job_id=selected_job_id) }}" class="btn btn-primary shadow-sm">
+            <i class="bi bi-cloud-arrow-up me-1"></i> Screen New Candidate
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Job Selection Bar -->
+    <div class="card-custom p-3 mb-4">
+        <form method="GET" action="{{ url_for('matching.ranking_page') }}" class="row g-2 align-items-center">
+            <div class="col-md-9">
+                <label class="form-label small fw-semibold text-secondary mb-1">Select Job Requisition to Rank</label>
+                <select name="job_id" class="form-select" onchange="this.form.submit()">
+                    {% for j in jobs %}
+                    <option value="{{ j.id }}" {% if selected_job_id == j.id %}selected{% endif %}>
+                        {{ j.title }} &bull; {{ j.department }} (REQ-{{ j.id }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100 py-2">
+                    <i class="bi bi-sort-numeric-down me-1"></i> Refresh Leaderboard
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- AI Ethics Banner -->
+    <div class="ai-disclaimer-banner">
+        <i class="bi bi-info-circle-fill text-primary fs-5"></i>
+        <div class="small">
+            <strong>Decision Support Notice:</strong> Candidate ranking thresholds (Strong Match: 85-100%, Potential Match: 70-84%, Needs Review: &lt;70%) are provided strictly as AI assistance. Recruiters must perform holistic evaluations and make final selection decisions.
+        </div>
+    </div>
+
+    <!-- Ranking Table -->
+    <div class="card-custom">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small text-secondary text-uppercase">
+                    <tr>
+                        <th style="width: 70px;">Rank</th>
+                        <th>Candidate</th>
+                        <th style="width: 170px;">Overall Match</th>
+                        <th>Skills Fit</th>
+                        <th>Experience</th>
+                        <th>Missing Skills</th>
+                        <th>Status</th>
+                        <th>Recommendation</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cand in candidates %}
+                    <tr>
+                        <td>
+                            <div class="rounded-circle {% if cand.rank == 1 %}bg-warning text-dark fw-bold{% elif cand.rank == 2 %}bg-secondary-subtle text-dark fw-bold{% elif cand.rank == 3 %}bg-danger-subtle text-dark fw-bold{% else %}bg-light text-secondary{% endif %} d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                #{{ cand.rank }}
+                            </div>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('candidates.candidate_profile', candidate_id=cand.id) }}" class="fw-bold text-dark text-decoration-none d-block">
+                                {{ cand.name }}
+                            </a>
+                            <small class="text-muted">{{ cand.current_title or 'Engineer' }} &bull; {{ cand.location or 'Remote' }}</small>
+                        </td>
+                        <td>
+                            {% if cand.overall_score %}
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress flex-grow-1" style="height: 8px;">
+                                    <div class="progress-bar {% if cand.overall_score >= 85 %}bg-success{% elif cand.overall_score >= 70 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                         style="width: {{ cand.overall_score }}%;"></div>
+                                </div>
+                                <span class="fw-bold small">{{ cand.overall_score }}%</span>
+                            </div>
+                            {% else %}
+                            <span class="text-muted small">Not computed</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if cand.skills_score %}
+                            <span class="small fw-semibold text-secondary">{{ cand.skills_score }}%</span>
+                            {% else %}
+                            <span class="text-muted small">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="small fw-medium">{{ cand.years_experience }} yrs</span>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-1" style="max-width: 200px;">
+                                {% for mis in cand.missing_skills_list %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle" style="font-size: 0.72rem;">{{ mis }}</span>
+                                {% else %}
+                                <span class="text-success small fw-medium"><i class="bi bi-check2"></i> None</span>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge {{ get_status_badge(cand.recruitment_status) }}">{{ cand.recruitment_status }}</span>
+                        </td>
+                        <td>
+                            <span class="{{ cand.rec_meta.badge }}">{{ cand.recommendation or 'Needs Review' }}</span>
+                        </td>
+                        <td class="text-end">
+                            <div class="d-flex justify-content-end gap-1">
+                                <a href="{{ url_for('matching.matching_page', job_id=selected_job_id, candidate_id=cand.id) }}" class="btn btn-sm btn-outline-primary py-1 px-2" title="Side-by-side Match">
+                                    <i class="bi bi-sliders"></i>
+                                </a>
+                                <a href="{{ url_for('interviews.questions_page', job_id=selected_job_id, candidate_id=cand.id) }}" class="btn btn-sm btn-outline-secondary py-1 px-2" title="Generate Questions">
+                                    <i class="bi bi-chat-quote"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center py-5 text-muted">
+                            <i class="bi bi-trophy fs-2 d-block mb-2 text-secondary"></i>
+                            No candidates found for this requisition. Upload resumes to populate leaderboard!
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+

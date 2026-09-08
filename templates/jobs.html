@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Job Openings{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Job Requisitions</h3>
+            <p class="text-muted mb-0">Create, manage, and track candidate applications across departments.</p>
+        </div>
+        <a href="{{ url_for('jobs.create_job') }}" class="btn btn-primary shadow-sm">
+            <i class="bi bi-plus-lg me-1"></i> Create New Requisition
+        </a>
+    </div>
+
+    <!-- Filter & Search Bar -->
+    <div class="card-custom p-3 mb-4">
+        <form method="GET" action="{{ url_for('jobs.index') }}" class="row g-2 align-items-center">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" name="q" class="form-control border-start-0" placeholder="Search by title, location, or keyword..." value="{{ search_query }}">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="Active" {% if selected_status == 'Active' %}selected{% endif %}>Active</option>
+                    <option value="Closed" {% if selected_status == 'Closed' %}selected{% endif %}>Closed</option>
+                    <option value="Draft" {% if selected_status == 'Draft' %}selected{% endif %}>Draft</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="dept" class="form-select">
+                    <option value="">All Departments</option>
+                    {% for d in departments %}
+                    <option value="{{ d }}" {% if selected_dept == d %}selected{% endif %}>{{ d }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-filter"></i></button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Jobs Table -->
+    <div class="card-custom">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small text-secondary text-uppercase">
+                    <tr>
+                        <th>Job Title</th>
+                        <th>Department</th>
+                        <th>Location & Type</th>
+                        <th>Experience</th>
+                        <th>Applicants</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for job in jobs %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('jobs.view_job', job_id=job.id) }}" class="fw-bold text-dark text-decoration-none d-block">
+                                {{ job.title }}
+                            </a>
+                            <small class="text-muted">Posted {{ format_datetime(job.created_at) }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ job.department }}</span>
+                        </td>
+                        <td>
+                            <span class="text-secondary small d-block"><i class="bi bi-geo-alt me-1"></i>{{ job.location }}</span>
+                            <small class="text-muted">{{ job.employment_type }}</small>
+                        </td>
+                        <td class="small fw-semibold text-secondary">{{ job.experience_required }}</td>
+                        <td>
+                            <a href="{{ url_for('matching.ranking_page', job_id=job.id) }}" class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2 text-decoration-none">
+                                <i class="bi bi-people-fill me-1"></i>{{ job.applicant_count }} candidates
+                            </a>
+                        </td>
+                        <td>
+                            <span class="badge {% if job.status == 'Active' %}bg-success-subtle text-success border border-success{% elif job.status == 'Closed' %}bg-secondary{% else %}bg-warning-subtle text-warning{% endif %}">
+                                {{ job.status }}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <div class="dropdown">
+                                <button class="btn btn-light btn-sm rounded-circle p-2" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                    <li>
+                                        <a class="dropdown-item small" href="{{ url_for('jobs.view_job', job_id=job.id) }}">
+                                            <i class="bi bi-eye text-primary me-2"></i> View Details
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item small" href="{{ url_for('matching.ranking_page', job_id=job.id) }}">
+                                            <i class="bi bi-trophy text-warning me-2"></i> Candidate Ranking
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item small" href="{{ url_for('resumes.analyzer_page', job_id=job.id) }}">
+                                            <i class="bi bi-upload text-info me-2"></i> Match New Resume
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item small" href="{{ url_for('jobs.edit_job', job_id=job.id) }}">
+                                            <i class="bi bi-pencil text-secondary me-2"></i> Edit Requisition
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form method="POST" action="{{ url_for('jobs.delete_job', job_id=job.id) }}" onsubmit="return confirm('Delete this job? This will delete associated matches and applications.');">
+                                            <button type="submit" class="dropdown-item small text-danger">
+                                                <i class="bi bi-trash me-2"></i> Delete Job
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bi bi-folder-x fs-2 d-block mb-2 text-secondary"></i>
+                            No job requisitions found matching your filter criteria.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+

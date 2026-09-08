@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Create Job Requisition{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width: 960px;">
+
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Create Job Requisition</h3>
+            <p class="text-muted mb-0">Publish a new opening and configure AI skill extraction criteria.</p>
+        </div>
+        <a href="{{ url_for('jobs.index') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> Back to Jobs
+        </a>
+    </div>
+
+    <div class="card-custom p-4">
+        <form method="POST" action="{{ url_for('jobs.create_job') }}">
+            <!-- Core Details -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-8">
+                    <label class="form-label small fw-semibold text-secondary">Job Title <span class="text-danger">*</span></label>
+                    <input type="text" name="title" id="jobTitle" class="form-control" placeholder="e.g. Senior Backend Python Engineer" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-secondary">Department <span class="text-danger">*</span></label>
+                    <input type="text" name="department" class="form-control" placeholder="e.g. Engineering, Product, Data" required>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-secondary">Location <span class="text-danger">*</span></label>
+                    <input type="text" name="location" class="form-control" placeholder="e.g. Remote, New York, NY" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-secondary">Employment Type</label>
+                    <select name="employment_type" class="form-select">
+                        <option value="Full Time">Full Time</option>
+                        <option value="Part Time">Part Time</option>
+                        <option value="Internship">Internship</option>
+                        <option value="Contract">Contract</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-secondary">Experience Required</label>
+                    <input type="text" name="experience_required" class="form-control" placeholder="e.g. 3+ Years, 5+ Years" value="3+ Years" required>
+                </div>
+            </div>
+
+            <!-- Compensation & Status -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-secondary">Min Salary (USD / yr)</label>
+                    <input type="number" name="min_salary" class="form-control" placeholder="e.g. 90000" step="1000">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-secondary">Max Salary (USD / yr)</label>
+                    <input type="number" name="max_salary" class="form-control" placeholder="e.g. 130000" step="1000">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-secondary">Requisition Status</label>
+                    <select name="status" class="form-select">
+                        <option value="Active">Active (Publish)</option>
+                        <option value="Draft">Draft (Save privately)</option>
+                        <option value="Closed">Closed</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Job Description -->
+            <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label class="form-label small fw-semibold text-secondary mb-0">Job Description <span class="text-danger">*</span></label>
+                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" id="btnAutoAnalyze">
+                        <i class="bi bi-stars text-warning me-1"></i> AI Auto-Extract Skills
+                    </button>
+                </div>
+                <textarea name="description" id="jobDescription" class="form-control" rows="5" placeholder="Detailed job overview, mission, and day-to-day role expectations..." required></textarea>
+                <small class="text-muted">Type description and click 'AI Auto-Extract' to automatically fill skills & requirements below.</small>
+            </div>
+
+            <!-- Responsibilities & Education -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold text-secondary">Key Responsibilities</label>
+                    <textarea name="responsibilities" id="jobResponsibilities" class="form-control" rows="4" placeholder="1. Architect REST APIs&#10;2. Design database schemas&#10;3. Conduct code reviews"></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold text-secondary">Education Requirements</label>
+                    <textarea name="education_requirements" id="jobEducation" class="form-control" rows="4" placeholder="Bachelor's or Master's degree in Computer Science, Software Engineering, or equivalent experience."></textarea>
+                </div>
+            </div>
+
+            <!-- Skills Configuration -->
+            <div class="p-3 bg-light rounded-3 border mb-4">
+                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-cpu text-primary me-2"></i>Skills Evaluation Criteria</h6>
+                
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-secondary">Required Skills (Comma-separated)</label>
+                    <input type="text" name="required_skills" id="requiredSkills" class="form-control bg-white" placeholder="e.g. Python, Flask, MySQL, REST API, Docker">
+                    <small class="text-muted">Directly influences 50% of candidate match score.</small>
+                </div>
+
+                <div>
+                    <label class="form-label small fw-semibold text-secondary">Preferred / Bonus Skills (Comma-separated)</label>
+                    <input type="text" name="preferred_skills" id="preferredSkills" class="form-control bg-white" placeholder="e.g. Redis, AWS, Kubernetes, GraphQL">
+                    <small class="text-muted">Weighted at 10% bonus match points.</small>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{{ url_for('jobs.index') }}" class="btn btn-light px-4">Cancel</a>
+                <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                    <i class="bi bi-check-circle me-1"></i> Publish Job Requisition
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const btnAuto = document.getElementById('btnAutoAnalyze');
+    const descInput = document.getElementById('jobDescription');
+    const titleInput = document.getElementById('jobTitle');
+    const respInput = document.getElementById('jobResponsibilities');
+    const reqInput = document.getElementById('requiredSkills');
+    const prefInput = document.getElementById('preferredSkills');
+    const eduInput = document.getElementById('jobEducation');
+
+    if (btnAuto) {
+        btnAuto.addEventListener('click', async () => {
+            const desc = descInput.value.trim();
+            const title = titleInput.value.trim();
+            if (!desc) {
+                alert('Please type or paste a job description first.');
+                return;
+            }
+
+            btnAuto.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Analyzing...';
+            btnAuto.disabled = true;
+
+            try {
+                const res = await fetch('/api/ai/analyze-job', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, description: desc, responsibilities: respInput.value })
+                });
+                const data = await res.json();
+                if (data.success && data.analysis) {
+                    reqInput.value = data.analysis.required_skills.join(', ');
+                    prefInput.value = data.analysis.preferred_skills.join(', ');
+                    if (data.analysis.education_requirements && !eduInput.value) {
+                        eduInput.value = data.analysis.education_requirements;
+                    }
+                    if (data.analysis.responsibilities && !respInput.value) {
+                        respInput.value = data.analysis.responsibilities.join('\n');
+                    }
+                    showToast('AI analysis completed and skills populated!', 'success');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Failed to auto-extract skills.', 'danger');
+            } finally {
+                btnAuto.innerHTML = '<i class="bi bi-stars text-warning me-1"></i> AI Auto-Extract Skills';
+                btnAuto.disabled = false;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+

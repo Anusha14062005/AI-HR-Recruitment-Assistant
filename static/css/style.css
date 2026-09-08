@@ -1,0 +1,300 @@
+/* ===================================================
+   AI HR RECRUITMENT ASSISTANT - MODERN SAAS STYLESHEET
+   =================================================== */
+
+:root {
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-light: #eef2ff;
+  --secondary: #64748b;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #06b6d4;
+  --dark-sidebar: #0f172a;
+  --sidebar-hover: #1e293b;
+  --sidebar-active: #312e81;
+  --bg-main: #f8fafc;
+  --card-bg: #ffffff;
+  --border-color: #e2e8f0;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --sidebar-width: 260px;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+}
+
+/* ---------------- LAYOUT & SIDEBAR ---------------- */
+#sidebar {
+  width: var(--sidebar-width);
+  min-height: 100vh;
+  background: var(--dark-sidebar);
+  color: #f1f5f9;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+#sidebar .brand-header {
+  padding: 1.5rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+#sidebar .nav-link {
+  color: #94a3b8;
+  padding: 0.75rem 1.25rem;
+  font-weight: 500;
+  font-size: 0.925rem;
+  display: flex;
+  align-items: center;
+  border-radius: 0.5rem;
+  margin: 0.15rem 0.75rem;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+#sidebar .nav-link i {
+  font-size: 1.2rem;
+  margin-right: 0.75rem;
+  width: 24px;
+  text-align: center;
+}
+
+#sidebar .nav-link:hover {
+  color: #ffffff;
+  background-color: var(--sidebar-hover);
+}
+
+#sidebar .nav-link.active {
+  color: #ffffff;
+  background-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+}
+
+#sidebar .sidebar-footer {
+  margin-top: auto;
+  padding: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Main Content Area */
+#content {
+  margin-left: var(--sidebar-width);
+  width: calc(100% - var(--sidebar-width));
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.top-navbar {
+  background: #ffffff;
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.85rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 900;
+}
+
+.main-body {
+  padding: 2rem;
+  flex: 1;
+}
+
+/* ---------------- CARDS & METRICS ---------------- */
+.stat-card {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.06), 0 4px 6px -2px rgba(0,0,0,0.04);
+}
+
+.stat-icon-wrapper {
+  width: 50px;
+  height: 50px;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.card-custom {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.card-custom-header {
+  padding: 1.25rem 1.5rem;
+  background: #ffffff;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ---------------- BADGES & PILLS ---------------- */
+.badge-strong {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  padding: 0.4rem 0.75rem;
+  border-radius: 2rem;
+  font-weight: 600;
+  font-size: 0.825rem;
+}
+
+.badge-potential {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  padding: 0.4rem 0.75rem;
+  border-radius: 2rem;
+  font-weight: 600;
+  font-size: 0.825rem;
+}
+
+.badge-needs-review {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  padding: 0.4rem 0.75rem;
+  border-radius: 2rem;
+  font-weight: 600;
+  font-size: 0.825rem;
+}
+
+.skill-tag-matched {
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #6ee7b7;
+  padding: 0.35rem 0.65rem;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0.2rem;
+}
+
+.skill-tag-missing {
+  background-color: #fff1f2;
+  color: #be123c;
+  border: 1px solid #fda4af;
+  padding: 0.35rem 0.65rem;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0.2rem;
+}
+
+.skill-tag-partial {
+  background-color: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fcd34d;
+  padding: 0.35rem 0.65rem;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0.2rem;
+}
+
+/* ---------------- RADIAL MATCH SCORE ---------------- */
+.radial-score-box {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: conic-gradient(var(--primary) calc(var(--score-deg, 0) * 1deg), #e2e8f0 0deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin: 0 auto;
+}
+
+.radial-score-inner {
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+}
+
+/* ---------------- UPLOAD DROPZONE ---------------- */
+.dropzone-area {
+  border: 2px dashed #cbd5e1;
+  border-radius: 1rem;
+  padding: 3rem 2rem;
+  text-align: center;
+  background-color: #f8fafc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dropzone-area:hover, .dropzone-area.dragover {
+  border-color: var(--primary);
+  background-color: var(--primary-light);
+}
+
+/* ---------------- ETHICAL AI DISCLAIMER BANNER ---------------- */
+.ai-disclaimer-banner {
+  background: #eff6ff;
+  border-left: 4px solid var(--primary);
+  padding: 1rem 1.25rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #1e3a8a;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+  #sidebar {
+    margin-left: calc(-1 * var(--sidebar-width));
+  }
+  #sidebar.show {
+    margin-left: 0;
+  }
+  #content {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+

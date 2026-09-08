@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Job: {{ job.title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width: 960px;">
+
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Edit Requisition</h3>
+            <p class="text-muted mb-0">Modify job attributes, salary bands, and skill evaluation criteria.</p>
+        </div>
+        <a href="{{ url_for('jobs.view_job', job_id=job.id) }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> Cancel & View
+        </a>
+    </div>
+
+    <div class="card-custom p-4">
+        <form method="POST" action="{{ url_for('jobs.edit_job', job_id=job.id) }}">
+            <div class="row g-3 mb-3">
+                <div class="col-md-8">
+                    <label class="form-label small fw-semibold text-secondary">Job Title</label>
+                    <input type="text" name="title" class="form-control" value="{{ job.title }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-secondary">Department</label>
+                    <input type="text" name="department" class="form-control" value="{{ job.department }}" required>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-secondary">Location</label>
+                    <input type="text" name="location" class="form-control" value="{{ job.location }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-secondary">Employment Type</label>
+                    <select name="employment_type" class="form-select">
+                        <option value="Full Time" {% if job.employment_type == 'Full Time' %}selected{% endif %}>Full Time</option>
+                        <option value="Part Time" {% if job.employment_type == 'Part Time' %}selected{% endif %}>Part Time</option>
+                        <option value="Internship" {% if job.employment_type == 'Internship' %}selected{% endif %}>Internship</option>
+                        <option value="Contract" {% if job.employment_type == 'Contract' %}selected{% endif %}>Contract</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-secondary">Experience Required</label>
+                    <input type="text" name="experience_required" class="form-control" value="{{ job.experience_required }}" required>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-secondary">Min Salary</label>
+                    <input type="number" name="min_salary" class="form-control" value="{{ job.min_salary or '' }}" step="1000">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-secondary">Max Salary</label>
+                    <input type="number" name="max_salary" class="form-control" value="{{ job.max_salary or '' }}" step="1000">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-secondary">Requisition Status</label>
+                    <select name="status" class="form-select">
+                        <option value="Active" {% if job.status == 'Active' %}selected{% endif %}>Active</option>
+                        <option value="Draft" {% if job.status == 'Draft' %}selected{% endif %}>Draft</option>
+                        <option value="Closed" {% if job.status == 'Closed' %}selected{% endif %}>Closed</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-semibold text-secondary">Job Description</label>
+                <textarea name="description" class="form-control" rows="5" required>{{ job.description }}</textarea>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold text-secondary">Key Responsibilities</label>
+                    <textarea name="responsibilities" class="form-control" rows="4">{{ job.responsibilities or '' }}</textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold text-secondary">Education Requirements</label>
+                    <textarea name="education_requirements" class="form-control" rows="4">{{ job.education_requirements or '' }}</textarea>
+                </div>
+            </div>
+
+            <div class="p-3 bg-light rounded-3 border mb-4">
+                <h6 class="fw-bold text-dark mb-3">Skills Evaluation Criteria</h6>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-secondary">Required Skills (Comma-separated)</label>
+                    <input type="text" name="required_skills" class="form-control bg-white" value="{{ req_skills }}">
+                </div>
+                <div>
+                    <label class="form-label small fw-semibold text-secondary">Preferred Skills (Comma-separated)</label>
+                    <input type="text" name="preferred_skills" class="form-control bg-white" value="{{ pref_skills }}">
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{{ url_for('jobs.view_job', job_id=job.id) }}" class="btn btn-light px-4">Cancel</a>
+                <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                    <i class="bi bi-save me-1"></i> Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}
+

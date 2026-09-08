@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Interview Evaluation - {{ interview.candidate_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width: 960px;">
+
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Interview Evaluation & Scorecard</h3>
+            <p class="text-muted mb-0">Record structured feedback, ratings across 6 key competencies, and final hiring recommendation.</p>
+        </div>
+        <a href="{{ url_for('interviews.interviews_list') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> Back to Interviews
+        </a>
+    </div>
+
+    <!-- Candidate & Interview Info Card -->
+    <div class="card-custom p-3 mb-4 bg-light">
+        <div class="row g-3 text-secondary small">
+            <div class="col-md-3">
+                <span class="d-block text-muted">Candidate:</span>
+                <strong class="text-dark fs-6">{{ interview.candidate_name }}</strong>
+            </div>
+            <div class="col-md-3">
+                <span class="d-block text-muted">Position:</span>
+                <strong class="text-dark">{{ interview.job_title }}</strong>
+            </div>
+            <div class="col-md-3">
+                <span class="d-block text-muted">Round / Date:</span>
+                <strong class="text-dark">{{ interview.interview_type }} on {{ interview.scheduled_date }}</strong>
+            </div>
+            <div class="col-md-3">
+                <span class="d-block text-muted">Interviewer:</span>
+                <strong class="text-dark">{{ interview.interviewer_name }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Calculated Score Banner -->
+    <div class="card-custom p-4 mb-4 border-primary">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="fw-bold text-dark mb-1">Calculated Interview Score</h5>
+                <p class="text-muted small mb-0">Aggregated across all 6 evaluation criteria (1-5 scale, max 30 points).</p>
+            </div>
+            <div class="text-end">
+                <h2 class="fw-bold text-primary mb-0" id="overallScoreDisplay">
+                    {{ evaluation.overall_score if evaluation else '60' }}%
+                </h2>
+            </div>
+        </div>
+        <div class="progress mt-3" style="height: 10px;">
+            <div id="overallScoreProgress" class="progress-bar bg-primary" style="width: {{ evaluation.overall_score if evaluation else '60' }}%;"></div>
+        </div>
+    </div>
+
+    <!-- Evaluation Form -->
+    <div class="card-custom p-4">
+        <form method="POST" action="{{ url_for('interviews.interview_evaluation', interview_id=interview.id) }}">
+            
+            <h5 class="fw-bold text-dark mb-4">Competency Ratings (1 to 5)</h5>
+
+            <div class="row g-4 mb-4">
+                <!-- 1. Technical Skills -->
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="fw-bold text-dark mb-0">1. Technical Skills & Depth</label>
+                            <span class="badge bg-primary rating-val-badge" id="val_tech">{{ evaluation.technical_score if evaluation else 3 }}/5</span>
+                        </div>
+                        <input type="range" class="form-range eval-rating-input" name="technical_score" min="1" max="5" step="1" 
+                               value="{{ evaluation.technical_score if evaluation else 3 }}" oninput="document.getElementById('val_tech').textContent = this.value + '/5'">
+                        <small class="text-muted d-block">Language syntax, architecture, and framework capabilities.</small>
+                    </div>
+                </div>
+
+                <!-- 2. Communication -->
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="fw-bold text-dark mb-0">2. Communication & Articulation</label>
+                            <span class="badge bg-primary rating-val-badge" id="val_comm">{{ evaluation.communication_score if evaluation else 3 }}/5</span>
+                        </div>
+                        <input type="range" class="form-range eval-rating-input" name="communication_score" min="1" max="5" step="1" 
+                               value="{{ evaluation.communication_score if evaluation else 3 }}" oninput="document.getElementById('val_comm').textContent = this.value + '/5'">
+                        <small class="text-muted d-block">Clarity of explanations, listening ability, and concise responses.</small>
+                    </div>
+                </div>
+
+                <!-- 3. Problem Solving -->
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="fw-bold text-dark mb-0">3. Problem Solving & Logic</label>
+                            <span class="badge bg-primary rating-val-badge" id="val_prob">{{ evaluation.problem_solving_score if evaluation else 3 }}/5</span>
+                        </div>
+                        <input type="range" class="form-range eval-rating-input" name="problem_solving_score" min="1" max="5" step="1" 
+                               value="{{ evaluation.problem_solving_score if evaluation else 3 }}" oninput="document.getElementById('val_prob').textContent = this.value + '/5'">
+                        <small class="text-muted d-block">Analytical breakdown, edge case awareness, and debugging.</small>
+                    </div>
+                </div>
+
+                <!-- 4. Project Knowledge -->
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="fw-bold text-dark mb-0">4. Project & Domain Knowledge</label>
+                            <span class="badge bg-primary rating-val-badge" id="val_proj">{{ evaluation.project_knowledge_score if evaluation else 3 }}/5</span>
+                        </div>
+                        <input type="range" class="form-range eval-rating-input" name="project_knowledge_score" min="1" max="5" step="1" 
+                               value="{{ evaluation.project_knowledge_score if evaluation else 3 }}" oninput="document.getElementById('val_proj').textContent = this.value + '/5'">
+                        <small class="text-muted d-block">Ownership of past projects, trade-offs, and architecture.</small>
+                    </div>
+                </div>
+
+                <!-- 5. Role Fit -->
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="fw-bold text-dark mb-0">5. Role & Culture Fit</label>
+                            <span class="badge bg-primary rating-val-badge" id="val_fit">{{ evaluation.role_fit_score if evaluation else 3 }}/5</span>
+                        </div>
+                        <input type="range" class="form-range eval-rating-input" name="role_fit_score" min="1" max="5" step="1" 
+                               value="{{ evaluation.role_fit_score if evaluation else 3 }}" oninput="document.getElementById('val_fit').textContent = this.value + '/5'">
+                        <small class="text-muted d-block">Alignment with engineering culture, teamwork, and growth mindset.</small>
+                    </div>
+                </div>
+
+                <!-- 6. Confidence -->
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="fw-bold text-dark mb-0">6. Confidence & Composure</label>
+                            <span class="badge bg-primary rating-val-badge" id="val_conf">{{ evaluation.confidence_score if evaluation else 3 }}/5</span>
+                        </div>
+                        <input type="range" class="form-range eval-rating-input" name="confidence_score" min="1" max="5" step="1" 
+                               value="{{ evaluation.confidence_score if evaluation else 3 }}" oninput="document.getElementById('val_conf').textContent = this.value + '/5'">
+                        <small class="text-muted d-block">Composure under challenging technical questions and pressure.</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Qualitative Feedback -->
+            <div class="mb-4">
+                <label class="form-label small fw-semibold text-secondary">Demonstrated Strengths</label>
+                <textarea name="strengths" class="form-control" rows="3" placeholder="Key technical areas and competencies where the candidate excelled...">{{ evaluation.strengths if evaluation else '' }}</textarea>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label small fw-semibold text-secondary">Weaknesses / Areas for Improvement</label>
+                <textarea name="weaknesses" class="form-control" rows="3" placeholder="Identified knowledge gaps, areas requiring mentoring or ramp-up...">{{ evaluation.weaknesses if evaluation else '' }}</textarea>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label small fw-semibold text-secondary">General Interview Notes</label>
+                <textarea name="notes" class="form-control" rows="3" placeholder="Additional observations, candidate questions, salary discussion notes...">{{ evaluation.notes if evaluation else '' }}</textarea>
+            </div>
+
+            <!-- Final Hiring Recommendation -->
+            <div class="p-3 bg-light rounded-3 border mb-4">
+                <label class="form-label fw-bold text-dark mb-2">Final Hiring Recommendation <span class="text-danger">*</span></label>
+                <div class="d-flex flex-wrap gap-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="final_recommendation" id="recStrong" value="Strongly Recommend" 
+                               {% if evaluation and evaluation.final_recommendation == 'Strongly Recommend' %}checked{% elif not evaluation %}checked{% endif %}>
+                        <label class="form-check-label fw-semibold text-success" for="recStrong">
+                            <i class="bi bi-star-fill me-1"></i> Strongly Recommend
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="final_recommendation" id="recRecommend" value="Recommend"
+                               {% if evaluation and evaluation.final_recommendation == 'Recommend' %}checked{% endif %}>
+                        <label class="form-check-label fw-semibold text-primary" for="recRecommend">
+                            <i class="bi bi-hand-thumbs-up-fill me-1"></i> Recommend
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="final_recommendation" id="recConsider" value="Consider"
+                               {% if evaluation and evaluation.final_recommendation == 'Consider' %}checked{% endif %}>
+                        <label class="form-check-label fw-semibold text-warning" for="recConsider">
+                            <i class="bi bi-question-circle-fill me-1"></i> Consider / Hold
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="final_recommendation" id="recReject" value="Not Recommended"
+                               {% if evaluation and evaluation.final_recommendation == 'Not Recommended' %}checked{% endif %}>
+                        <label class="form-check-label fw-semibold text-danger" for="recReject">
+                            <i class="bi bi-x-circle-fill me-1"></i> Not Recommended
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{{ url_for('interviews.interviews_list') }}" class="btn btn-light px-4">Cancel</a>
+                <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                    <i class="bi bi-check2-circle me-1"></i> Submit Evaluation
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/interviews.js') }}"></script>
+{% endblock %}
+

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - AI HR Recruitment Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .auth-card {
+            background: #ffffff;
+            border-radius: 1.25rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+            max-width: 440px;
+            width: 100%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<div class="auth-card p-4 p-md-5 my-5">
+    <div class="text-center mb-4">
+        <div class="bg-primary text-white rounded-3 p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow">
+            <i class="bi bi-cpu-fill fs-3"></i>
+        </div>
+        <h4 class="fw-bold text-dark mb-1">AI HR Recruitment Assistant</h4>
+        <p class="text-muted small">Sign in to your HR Recruiter workspace</p>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show small" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('auth.login') }}">
+        <div class="mb-3">
+            <label class="form-label small fw-semibold text-secondary">Work Email</label>
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+                <input type="email" name="email" id="loginEmail" class="form-control border-start-0" placeholder="hr@company.com" value="{{ email or 'admin@recruitment.ai' }}" required>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label small fw-semibold text-secondary mb-0">Password</label>
+            </div>
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-muted"></i></span>
+                <input type="password" name="password" id="loginPassword" class="form-control border-start-0" placeholder="••••••••" value="Admin@123" required>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold shadow-sm mb-3">
+            <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Dashboard
+        </button>
+
+        <!-- Quick Demo Credentials Fill -->
+        <div class="p-3 bg-light rounded-3 border mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <small class="fw-bold text-secondary text-uppercase" style="font-size: 0.7rem;">Demo Credentials</small>
+                <span class="badge bg-primary-subtle text-primary" style="font-size: 0.65rem;">Click to fill</span>
+            </div>
+            <div class="d-flex flex-column gap-1">
+                <button type="button" class="btn btn-outline-secondary btn-sm text-start py-1 px-2 font-monospace" style="font-size: 0.75rem;" 
+                        onclick="fillCreds('admin@recruitment.ai', 'Admin@123')">
+                    <strong>Admin:</strong> admin@recruitment.ai (Admin@123)
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm text-start py-1 px-2 font-monospace" style="font-size: 0.75rem;" 
+                        onclick="fillCreds('sarah.recruiter@recruitment.ai', 'Recruiter@123')">
+                    <strong>Recruiter:</strong> sarah.recruiter@recruitment.ai
+                </button>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <small class="text-muted">Need a new account? <a href="{{ url_for('auth.register') }}" class="text-primary fw-semibold text-decoration-none">Create Account</a></small>
+        </div>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function fillCreds(email, pwd) {
+    document.getElementById('loginEmail').value = email;
+    document.getElementById('loginPassword').value = pwd;
+}
+</script>
+</body>
+</html>
+
